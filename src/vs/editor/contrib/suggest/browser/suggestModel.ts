@@ -313,6 +313,12 @@ export class SuggestModel implements IDisposable {
 				return;
 			}
 
+			// custom snippets suggestion
+			var tscss = window["TSSnippetService"];
+			if (tscss) {
+				tscss.suggest(all, triggerCharacter, groups);
+			}
+
 			this.raw = all;
 			this.incomplete = all.reduce((r, s) => r || s.reduce((r, s) => r || s.incomplete, false), false);
 

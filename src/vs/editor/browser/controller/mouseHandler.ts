@@ -276,7 +276,10 @@ export class MouseHandler extends ViewEventHandler implements Lifecycle.IDisposa
 				// IE does not want to focus when coming in from the browser's address bar
 				if ((<any>e.browserEvent).fromElement) {
 					e.preventDefault();
-					this.viewHelper.focusTextArea();
+					// TODO@Alex -> cancel this if focus is lost
+					setTimeout(() => {
+						this.viewHelper.focusTextArea();
+					});
 				} else {
 					// TODO@Alex -> cancel this if focus is lost
 					setTimeout(() => {
@@ -285,7 +288,10 @@ export class MouseHandler extends ViewEventHandler implements Lifecycle.IDisposa
 				}
 			} else {
 				e.preventDefault();
-				this.viewHelper.focusTextArea();
+				// TODO@Alex -> cancel this if focus is lost
+				setTimeout(() => {
+					this.viewHelper.focusTextArea();
+				});
 			}
 			this._updateMouse(t.type, e, e.shiftKey, e.detail);
 			this._hook(t.type);

@@ -310,7 +310,12 @@ export class FindWidget extends Widget implements EditorBrowser.IOverlayWidget {
 	}
 
 	private _onFindInputKeyDown(e:DomUtils.IKeyboardEvent): void {
-
+		if (e && e.browserEvent && e.browserEvent['keyCode'] === 0x0d) {
+			e.preventDefault();
+			if (e.stopPropagation) {
+				e.stopPropagation();
+			}
+		}
 		switch (e.asKeybinding()) {
 			case CommonKeybindings.ENTER:
 				this._codeEditor.getAction(FIND_IDS.NextMatchFindAction).run().done(null, Errors.onUnexpectedError);
@@ -339,7 +344,12 @@ export class FindWidget extends Widget implements EditorBrowser.IOverlayWidget {
 	}
 
 	private _onReplaceInputKeyDown(e:DomUtils.IKeyboardEvent): void {
-
+		if (e && e.browserEvent && e.browserEvent['keyCode'] === 0x0d) {
+			e.preventDefault();
+			if (e.stopPropagation) {
+				e.stopPropagation();
+			}
+		}
 		switch (e.asKeybinding()) {
 			case CommonKeybindings.ENTER:
 				this._controller.replace();

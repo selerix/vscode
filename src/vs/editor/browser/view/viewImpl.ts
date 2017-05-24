@@ -286,7 +286,8 @@ export class View extends ViewEventHandler implements EditorBrowser.IView, Lifec
 
 			focusTextArea: () => {
 				if (this._isDisposed) {
-					throw new Error('ViewImpl.pointerHandler.focusTextArea: View is disposed');
+					//throw new Error('ViewImpl.pointerHandler.focusTextArea: View is disposed');
+					return;
 				}
 				this.focus();
 			},

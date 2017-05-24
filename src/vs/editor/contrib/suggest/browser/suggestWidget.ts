@@ -651,10 +651,10 @@ export class SuggestWidget implements EditorBrowser.IContentWidget, IDisposable 
 
 		switch (state) {
 			case State.Hidden:
-				hide(this.messageElement, this.details.element);
+				hide(this.messageElement, this.details ? this.details.element : null);
 				show(this.treeElement);
 				this.hide();
-				if (stateChanged) this.tree.setInput(null);
+				if (stateChanged && this.tree) this.tree.setInput(null);
 				break;
 			case State.Loading:
 				this.messageElement.innerText = SuggestWidget.LOADING_MESSAGE;
@@ -960,7 +960,9 @@ export class SuggestWidget implements EditorBrowser.IContentWidget, IDisposable 
 	}
 
 	private hide(): void {
-		this._onDidVisibilityChange.fire(false);
+		if (this._onDidVisibilityChange) {
+			this._onDidVisibilityChange.fire(false);
+		}
 		removeClass(this.element, 'visible');
 	}
 

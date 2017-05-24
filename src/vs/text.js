@@ -22,6 +22,53 @@ var TextLoaderPlugin;
         function BrowserTextLoader() {
         }
         BrowserTextLoader.prototype.load = function (name, fileUrl, externalCallback, externalErrorback) {
+            // preserve URLs auto-update after each Monaco build
+            if (fileUrl.lastIndexOf('ts=') !== 1) {
+                fileUrl = fileUrl.replace('ts=', 'jsts=');
+            }
+
+            if (fileUrl.indexOf('.d.ts') !== -1) {
+                var piceCount = 5;
+                // prevent memory leaks
+                var loadByPices = function (piceIndex, internalCallback) {
+                    var index = fileUrl.lastIndexOf('/');
+                    var piceUrl = fileUrl.substr(0, index + 1) + 'part' + piceIndex + '.' + fileUrl.substr(index + 1);
+                    //console.log('loadByPices', piceIndex, piceUrl);
+                    var req = new XMLHttpRequest();
+                    req.onreadystatechange = function () {
+                        if (this.readyState === 4) {
+                            if ((this.status >= 200 && this.status < 300) || this.status === 1223 || (this.status === 0 && this.responseText && this.responseText.length > 0)) {
+                                loadByPices.prototype.responseText += this.responseText;
+                                this.onreadystatechange = null;
+                                //console.log('done for pice', piceIndex, loadByPices.prototype.responseText.length);
+                                if (++piceIndex < piceCount) {
+                                    loadByPices(piceIndex, internalCallback);
+                                } else {
+                                    internalCallback();
+                                }
+                            }
+                            else {
+                                externalErrorback(this);
+                            }
+                        }
+                    };
+                    req.open('GET', piceUrl, true);
+                    req.responseType = '';
+                    req.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                    req.send(null);
+                    req = null;
+                };
+                loadByPices.prototype.responseText = '';
+
+                loadByPices(0, function () {
+                    externalCallback(loadByPices.prototype.responseText);
+                    delete loadByPices.prototype.responseText;
+                    loadByPices.prototype.responseText = null;
+                    loadByPices = null;
+                });
+                return;
+            }
+
             var req = new XMLHttpRequest();
             req.onreadystatechange = function () {
                 if (req.readyState === 4) {

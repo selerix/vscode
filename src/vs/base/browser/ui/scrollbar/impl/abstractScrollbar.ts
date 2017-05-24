@@ -495,6 +495,7 @@ export abstract class AbstractScrollbar implements IScrollbar {
 			return;
 		}
 		this._onMouseDown(e);
+		e.stopPropagation();
 	}
 
 	public delegateMouseDown(browserEvent:MouseEvent): void {
@@ -547,6 +548,10 @@ export abstract class AbstractScrollbar implements IScrollbar {
 			);
 
 			e.preventDefault();
+			if (e.target === this.slider) {
+				e.stopPropagation();
+			}
+
 			this.parent.onDragStart();
 		}
 	}

@@ -203,7 +203,7 @@ export class ZoneWidget extends Events.EventEmitter {
 				this.editor.removeOverlayWidget(this.overlayWidget);
 				this.overlayWidget = null;
 			}
-			this.domNode.style.top = '-1000px';
+			// this.domNode.style.top = '-1000px';
 			var viewZone = new ViewZoneDelegate(
 				viewZoneDomNode,
 				position.lineNumber,

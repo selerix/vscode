@@ -237,7 +237,20 @@ var CSSLoaderPlugin;
         }
         CSSPlugin.prototype.load = function (name, req, load, config) {
             config = config || {};
+            // make css url from js include path
             var cssUrl = req.toUrl(name + '.css');
+            if (cssUrl.lastIndexOf('.js?') !== -1) {
+                if (cssUrl.lastIndexOf('.css') !== -1) {
+                    cssUrl = cssUrl.replace('.css', '');
+                }
+
+                cssUrl = cssUrl.replace('.js?', '.css?');
+
+                // preserve URLs auto-update after each Monaco build
+                if (cssUrl.lastIndexOf('ts=') !== 1) {
+                    cssUrl = cssUrl.replace('ts=', 'jsts=');
+                }
+            }
             this.cssLoader.load(name, cssUrl, function (contents) {
                 // Contents has the CSS file contents if we are in a build
                 if (config.isBuild) {

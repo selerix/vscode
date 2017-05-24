@@ -62,6 +62,11 @@ var lastStart:number, lastEnd:number;
 
 function _findClassName(node:HTMLElement, className:string): void {
 
+	if(!node) {
+		lastStart = -1;
+		return;
+	}
+
 	var classes = node.className;
 	if(!classes) {
 		lastStart = -1;
@@ -1075,12 +1080,47 @@ export function emmet(description: string):HTMLElement {
 
 export function show(...elements: HTMLElement[]): void {
 	for (const element of elements) {
-		element.style.display = null;
+		if (element) {
+			element.style.display = '';
+		}
 	}
 }
 
 export function hide(...elements: HTMLElement[]): void {
 	for (const element of elements) {
+	if (element) {
 		element.style.display = 'none';
 	}
+	}
+}
+
+function findParentWithAttribute(node: Node, attribute: string): HTMLElement {
+	while (node) {
+		if (node instanceof HTMLElement && node.hasAttribute(attribute)) {
+			return node;
+		}
+
+		node = node.parentNode;
+	}
+
+	return null;
+}
+
+export function removeTabIndexAndUpdateFocus(node: HTMLElement): void {
+	if (!node || !node.hasAttribute('tabIndex')) {
+		return;
+	}
+
+	// If we are the currently focused element and tabIndex is removed,
+	// standard DOM behavior is to move focus to the <body> element. We
+	// typically never want that, rather put focus to the closest element
+	// in the hierarchy of the parent DOM nodes.
+	if (document.activeElement === node) {
+		let parentFocusable = findParentWithAttribute(node.parentElement, 'tabIndex');
+		if (parentFocusable) {
+			parentFocusable.focus();
+		}
+	}
+
+	node.removeAttribute('tabindex');
 }

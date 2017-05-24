@@ -256,7 +256,7 @@ export class KeybindingService extends AbstractKeybindingService implements IKey
 			}
 			let commandId = resolveResult.commandId.replace(/^\^/, '');
 			this._invokeHandler(commandId, { context: contextValue }).done(undefined, err => {
-				this._messageService.show(Severity.Warning, err);
+				if (this._messageService) { this._messageService.show(Severity.Warning, err); }
 			});
 		}
 	}

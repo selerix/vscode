@@ -220,11 +220,89 @@ export class FormatAction extends EditorAction {
 		}
 	}
 }
+//
+// --
+//
+export class _CMKeyboardAction extends EditorAction {
+	private handlerId: string;
 
-// register action
+	constructor(descriptor:EditorCommon.IEditorActionDescriptorData, editor:EditorCommon.ICommonCodeEditor, @INullService ns, handlerId: string) {
+		super(descriptor, editor, Behaviour.WidgetFocus | Behaviour.Writeable | Behaviour.UpdateOnModelChange | Behaviour.ShowInContextMenu);
+		this.handlerId = handlerId || 'unknown';
+	}
+
+	public dispose() {
+		super.dispose();
+	}
+
+	public isSupported(): boolean {
+		return super.isSupported();
+	}
+
+	public run(): TPromise<boolean> {
+		this.editor.focus();
+		this.apply(this.editor, null, null);
+		return TPromise.as(true);
+	}
+
+	public apply(editor: EditorCommon.ICommonCodeEditor, editorSelection: EditorCommon.IEditorSelection, value: EditorCommon.ISingleEditOperation[]): void {
+		//editor.getKeybindingService().executeCommand(this.handlerId);
+		// invoke keyboard event handler directly
+		var standaloneEditor: any = editor;
+		var standaloneKeybindingService = standaloneEditor._keybindingService._parent;
+		var contextId = standaloneKeybindingService._findContextAttr(document.activeElement);
+		var context = standaloneKeybindingService.getContext(contextId);
+		var contextValue = context.getValue();
+		editor.trigger('keyboard', this.handlerId, {context: contextValue});
+	}
+}
+
+//
+// undo
+//
+export class UndoAction extends _CMKeyboardAction {
+
+	public static ID = 'editor.action.undo';
+
+	constructor(descriptor:EditorCommon.IEditorActionDescriptorData, editor:EditorCommon.ICommonCodeEditor, @INullService ns) {
+		super(descriptor, editor, ns, 'undo');
+	}
+
+	public getGroupId(): string {
+		return '3_change/1_undo';
+	}
+}
+
+//
+// redo
+//
+export class RedoAction extends _CMKeyboardAction {
+
+	public static ID = 'editor.action.redo';
+
+	constructor(descriptor:EditorCommon.IEditorActionDescriptorData, editor:EditorCommon.ICommonCodeEditor, @INullService ns) {
+		super(descriptor, editor, ns, 'redo');
+	}
+
+	public getGroupId(): string {
+		return '3_change/2_redo';
+	}
+}
+
+// register actions
 CommonEditorRegistry.registerEditorAction(new EditorActionDescriptor(FormatAction, FormatAction.ID, nls.localize('formatAction.label', "Format Code"), {
 	context: ContextKey.EditorTextFocus,
 	primary: KeyMod.Shift | KeyMod.Alt | KeyCode.KEY_F,
-	linux: { primary:KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_I }
+	linux: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_I }
+}));
+CommonEditorRegistry.registerEditorAction(new EditorActionDescriptor(UndoAction, UndoAction.ID, 'Undo', {
+	context: ContextKey.EditorTextFocus,
+	primary: KeyMod.CtrlCmd | KeyCode.KEY_Z,
+	linux: { primary: KeyMod.CtrlCmd | KeyCode.KEY_Z }
+}));
+CommonEditorRegistry.registerEditorAction(new EditorActionDescriptor(RedoAction, RedoAction.ID, 'Redo', {
+	context: ContextKey.EditorTextFocus,
+	primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_Z,
+	linux: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_Z }
 }));
 CommonEditorRegistry.registerEditorContribution(FormatOnType);

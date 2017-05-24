@@ -184,8 +184,8 @@ class LineContext implements Modes.ILineContext {
 export class TextModelWithTokens extends TextModel implements EditorCommon.ITokenizedModel {
 
 	private static MODE_TOKENIZATION_FAILED_MSG = nls.localize('mode.tokenizationSupportFailed', "The mode has failed while tokenizing the input.");
-	private static MODEL_SYNC_LIMIT = 5 * 1024 * 1024; // 5 MB
-	private static MODEL_TOKENIZATION_LIMIT = 20 * 1024 * 1024; // 20 MB
+	private static MODEL_SYNC_LIMIT = 50 * 1024 * 1024; // 50 MB
+	private static MODEL_TOKENIZATION_LIMIT = 50 * 1024 * 1024; // 50 MB
 
 	private _shouldAutoTokenize:boolean;
 	private _mode: Modes.IMode;

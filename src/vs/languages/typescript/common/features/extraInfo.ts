@@ -23,12 +23,13 @@ export function compute(languageService: ts.LanguageService, resource:URI, posit
 	if(info) {
 
 		var htmlContent: IHTMLContentElement[] = [
-			{ markdown: previewer.plain(info.documentation) },
-			{ markdown: '```javascript\n' + previewer.plain(info.displayParts) + '\n```' },
+			previewer.html(info.displayParts),
+			previewer.html(info.documentation, 'documentation')
 		];
 
 		result = {
 			htmlContent: htmlContent,
+			className: 'typeInfo ts',
 			range: converter.getRange(sourceFile, info.textSpan)
 		};
 	}

@@ -135,6 +135,11 @@ export function mixin(destination: any, source: any, overwrite: boolean = true):
 		return source;
 	}
 
+	if (destination === source) {
+		// circular reference fix
+		return destination;
+	}
+
 	if (Types.isObject(source)) {
 		Object.keys(source).forEach((key) => {
 			if (key in destination) {

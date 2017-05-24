@@ -9,7 +9,8 @@
 	var MonacoEnvironment = (<any>self).MonacoEnvironment;
 	var monacoBaseUrl = MonacoEnvironment && MonacoEnvironment.baseUrl ? MonacoEnvironment.baseUrl : '../../../';
 
-	importScripts(monacoBaseUrl + 'vs/loader.js');
+	//importScripts(monacoBaseUrl + 'vs/loader.js');
+	importScripts(monacoBaseUrl + '../scripts/require.js');
 
 	require.config({
 		baseUrl: monacoBaseUrl,

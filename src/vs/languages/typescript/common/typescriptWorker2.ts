@@ -105,7 +105,7 @@ export class TypeScriptWorker2 extends AbstractModeWorker {
 	public canAcceptFileChanges(newLength: number): boolean {
 		let newTotal = this._projectService.getTotalLength() + newLength;
 		// console.log('~' + Math.round(newTotal / (1024 * 1024)) + 'MB');
-		return newTotal < 1024 * 1024 * 35;
+		return newTotal < 1024 * 1024 * 50;
 	}
 
 	public acceptFileChanges(changes: { kind: typescript.ChangeKind; resource: URI; content: string }[]): boolean {

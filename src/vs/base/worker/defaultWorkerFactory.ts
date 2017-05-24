@@ -9,7 +9,11 @@ import env = require('vs/base/common/flags');
 import {IWorker, IWorkerCallback, IWorkerFactory} from 'vs/base/common/worker/workerClient';
 
 function defaultGetWorkerUrl(workerId:string, label:string): string {
-	return require.toUrl('./' + workerId + '?' + encodeURIComponent(label));
+	var url = require.toUrl('./' + workerId + '&' + encodeURIComponent(label));
+	if (url.lastIndexOf('.js&') !== -1) {
+		url = url.replace('.js&', '&');
+	}
+	return url;
 }
 var getWorkerUrl = env.getCrossOriginWorkerScriptUrl || defaultGetWorkerUrl;
 

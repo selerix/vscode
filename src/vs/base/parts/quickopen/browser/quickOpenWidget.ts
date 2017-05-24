@@ -674,7 +674,9 @@ export class QuickOpenWidget implements IModelProvider {
 
 		// Clear input field and clear tree
 		this.inputBox.value = '';
-		this.tree.setInput(null);
+		if (this.tree) {
+			this.tree.setInput(null);
+		}
 
 		// ARIA
 		this.inputElement.setAttribute('aria-haspopup', 'false');

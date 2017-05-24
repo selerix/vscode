@@ -196,24 +196,35 @@ export class ContextView extends EventEmitter {
 
 		// Get the container's position
 		let insidePosition = this.$container.getPosition();
+		let holder = this.$container.getHTMLElement();
 		let inside = {
 			top: insidePosition.top,
 			left: insidePosition.left,
-			height: window.innerHeight,
-			width: window.innerWidth
+			height: holder.offsetHeight || window.innerHeight,
+			width: holder.offsetWidth || window.innerWidth
 		};
 
 		// Get the view's size
 		let viewSize = this.$view.getTotalSize();
 		let view = { width: viewSize.width, height: viewSize.height };
 
+		let relativeTop = around.top - inside.top;
+		let widgetTop = relativeTop - view.height;
+		let widgetBottom = relativeTop + view.height;
+		
+		this.delegate.anchorPosition = relativeTop > inside.height / 2 
+			? AnchorPosition.ABOVE : AnchorPosition.BELOW;
+		
+		if (this.delegate.anchorPosition === AnchorPosition.ABOVE && widgetTop < 0) around.top -= widgetTop;
+		if (this.delegate.anchorPosition === AnchorPosition.BELOW && widgetBottom > inside.height) around.top -= widgetBottom - inside.height; 
+		
 		let anchorPosition = this.delegate.anchorPosition || AnchorPosition.BELOW;
 		let anchorAlignment = this.delegate.anchorAlignment || AnchorAlignment.LEFT;
 
 		let result = layout(view, around, inside, anchorPosition, anchorAlignment);
 
 		this.$view.removeClass('top', 'bottom', 'left', 'right');
-		this.$view.addClass(anchorPosition === AnchorPosition.BELOW ? 'bottom' : 'top');
+		this.$view.addClass(this.delegate.anchorPosition === AnchorPosition.BELOW ? 'bottom' : 'top');
 		this.$view.addClass(anchorAlignment === AnchorAlignment.LEFT ? 'left' : 'right');
 		this.$view.style({ top: result.top + 'px', left: result.left + 'px', width: 'initial' });
 	}

@@ -295,7 +295,7 @@ export class ActionItem extends BaseActionItem {
 		} else {
 			this.builder.addClass('disabled');
 			this.$e.addClass('disabled');
-			this.$e.removeAttribute('tabindex');
+			DOM.removeTabIndexAndUpdateFocus(this.$e.getHTMLElement());
 		}
 	}
 
@@ -429,6 +429,7 @@ export class ActionBar extends EventEmitter implements IActionRunner {
 
 		this.domNode = document.createElement('div');
 		this.domNode.className = 'monaco-action-bar';
+		this.domNode.tabIndex = 0;
 
 		let isVertical = this.options.orientation === ActionsOrientation.VERTICAL;
 		if (isVertical) {

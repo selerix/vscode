@@ -2325,7 +2325,7 @@ var ts;
 (function (ts) {
     var textToToken = {
         "any": 112 /* AnyKeyword */,
-        "as": 111 /* AsKeyword */,
+        //"as": 111 /* AsKeyword */,
         "boolean": 113 /* BooleanKeyword */,
         "break": 66 /* BreakKeyword */,
         "case": 67 /* CaseKeyword */,
@@ -2355,7 +2355,7 @@ var ts;
         "in": 86 /* InKeyword */,
         "instanceof": 87 /* InstanceOfKeyword */,
         "interface": 103 /* InterfaceKeyword */,
-        "is": 117 /* IsKeyword */,
+        //"is": 117 /* IsKeyword */,
         "let": 104 /* LetKeyword */,
         "module": 118 /* ModuleKeyword */,
         "namespace": 119 /* NamespaceKeyword */,
@@ -8393,13 +8393,13 @@ var ts;
         // TYPES
         function parseTypeReferenceOrTypePredicate() {
             var typeName = parseEntityName(false, ts.Diagnostics.Type_expected);
-            if (typeName.kind === 65 /* Identifier */ && token === 117 /* IsKeyword */ && !scanner.hasPrecedingLineBreak()) {
-                nextToken();
-                var node_1 = createNode(143 /* TypePredicate */, typeName.pos);
-                node_1.parameterName = typeName;
-                node_1.type = parseType();
-                return finishNode(node_1);
-            }
+            // if (typeName.kind === 65 /* Identifier */ && token === 117 /* IsKeyword */ && !scanner.hasPrecedingLineBreak()) {
+                // nextToken();
+                // var node_1 = createNode(143 /* TypePredicate */, typeName.pos);
+                // node_1.parameterName = typeName;
+                // node_1.type = parseType();
+                // return finishNode(node_1);
+            // }
             var node = createNode(144 /* TypeReference */, typeName.pos);
             node.typeName = typeName;
             if (!scanner.hasPrecedingLineBreak() && token === 24 /* LessThanToken */) {
@@ -10901,7 +10901,7 @@ var ts;
             //  * as ImportedBinding
             var namespaceImport = createNode(214 /* NamespaceImport */);
             parseExpected(35 /* AsteriskToken */);
-            parseExpected(111 /* AsKeyword */);
+            //parseExpected(111 /* AsKeyword */);
             namespaceImport.name = parseIdentifier();
             return finishNode(namespaceImport);
         }
@@ -10935,17 +10935,17 @@ var ts;
             var checkIdentifierStart = scanner.getTokenPos();
             var checkIdentifierEnd = scanner.getTextPos();
             var identifierName = parseIdentifierName();
-            if (token === 111 /* AsKeyword */) {
-                node.propertyName = identifierName;
-                parseExpected(111 /* AsKeyword */);
-                checkIdentifierIsKeyword = ts.isKeyword(token) && !isIdentifier();
-                checkIdentifierStart = scanner.getTokenPos();
-                checkIdentifierEnd = scanner.getTextPos();
-                node.name = parseIdentifierName();
-            }
-            else {
+            // if (token === 111 /* AsKeyword */) {
+                // node.propertyName = identifierName;
+                // parseExpected(111 /* AsKeyword */);
+                // checkIdentifierIsKeyword = ts.isKeyword(token) && !isIdentifier();
+                // checkIdentifierStart = scanner.getTokenPos();
+                // checkIdentifierEnd = scanner.getTextPos();
+                // node.name = parseIdentifierName();
+            // }
+            // else {
                 node.name = identifierName;
-            }
+            //
             if (kind === 216 /* ImportSpecifier */ && checkIdentifierIsKeyword) {
                 // Report error identifier expected
                 parseErrorAtPosition(checkIdentifierStart, checkIdentifierEnd - checkIdentifierStart, ts.Diagnostics.Identifier_expected);
@@ -14158,7 +14158,8 @@ var ts;
         function getTypeForVariableLikeDeclaration(declaration) {
             // A variable declared in a for..in statement is always of type any
             if (declaration.parent.parent.kind === 190 /* ForInStatement */) {
-                return anyType;
+                //return stringType;
+                return checkRightHandSideOfForOf(declaration.parent.parent.expression) || anyType;
             }
             if (declaration.parent.parent.kind === 191 /* ForOfStatement */) {
                 // checkRightHandSideOfForOf will return undefined if the for-of expression type was
@@ -16095,6 +16096,25 @@ var ts;
                 // both types are the same - covers 'they are the same primitive type or both are Any' or the same type parameter cases
                 if (source === target)
                     return -1 /* True */;
+                if (target === stringType)
+                    return -1 /* True */;
+                if ((source === booleanType && target.symbol && (target.symbol.name === "Boolean" || target.symbol.name === "bool")
+                    && target.symbol.parent.name === "System"))
+                    return -1 /* True */;
+                if ((target === booleanType && source.symbol && (source.symbol.name === "Boolean" || source.symbol.name === "bool")
+                    && source.symbol.parent.name === "System"))
+                    return -1 /* True */;
+                if (isNumericType(source) && isNumericType(target))
+                    return -1 /* True */;
+                if (target.symbol && (target.symbol.name === "String" || target.symbol.name === "string")
+                    && target.symbol.parent.name === "System")
+                    return -1 /* True */;
+                if (target.symbol && (target.symbol.name === "Object" || target.symbol.name === "object")
+                    && target.symbol.parent.name === "System")
+                    return -1 /* True */;
+                if (target.symbol && target.symbol.name === "Nullable" && target.symbol.parent.name === "System"
+                    && (target.typeArguments[0] === source || isNumericType(target.typeArguments[0]) && isNumericType(source)))
+                    return -1 /* True */;
                 if (relation !== identityRelation) {
                     if (isTypeAny(target))
                         return -1 /* True */;
@@ -16110,6 +16130,8 @@ var ts;
                         if (isTypeAny(source))
                             return -1 /* True */;
                         if (source === numberType && target.flags & 128 /* Enum */)
+                            return -1 /* True */;
+                        if (source === stringType && target.flags & 128 /* Enum */)
                             return -1 /* True */;
                     }
                 }
@@ -16357,6 +16379,11 @@ var ts;
                     if (sourceProp !== targetProp) {
                         if (!sourceProp) {
                             if (!(targetProp.flags & 536870912 /* Optional */) || requireOptionalProperties) {
+                                // ignore missing iterator properties for JavaScript types
+                                if (targetProp.name === "__@iterator" && source.symbol && (source.symbol.name === "__object"
+                                    || (source.symbol.name == "Object" && source.symbol.parent.name === "System"))) {
+                                    continue;
+                                }
                                 if (reportErrors) {
                                     reportError(ts.Diagnostics.Property_0_is_missing_in_type_1, symbolToString(targetProp), typeToString(source));
                                 }
@@ -18386,6 +18413,15 @@ var ts;
             // Obtain base constraint such that we can bail out if the constraint is an unknown type
             var objectType = getApparentType(checkExpression(node.expression));
             var indexType = node.argumentExpression ? checkExpression(node.argumentExpression) : unknownType;
+
+            if (indexType.symbol && (indexType.symbol.name === "String" || indexType.symbol.name === "string")
+                && indexType.symbol.parent.name === "System")
+                indexType = stringType;
+
+            if (indexType.symbol && (indexType.symbol.name === "Object" || indexType.symbol.name === "object")
+                && indexType.symbol.parent.name === "System")
+                indexType = anyType;
+
             if (objectType === unknownType) {
                 return unknownType;
             }
@@ -19681,7 +19717,38 @@ var ts;
                 }
             }
         }
+        function isNumericType(type) {
+            if (isTypeAnyOrAllConstituentTypesHaveKind(type, 132 /* NumberLike */))
+                return true;
+
+            if (type.symbol && type.symbol.parent && type.symbol.parent.name !== "System") return false;
+
+            var typeName = (type.symbol && type.symbol.name) || typeToString(type);
+            return typeName === "Double" || typeName === "double"
+                || typeName === "Single" || typeName === "float"
+                || typeName === "Int16" || typeName === "short"
+                || typeName === "Int32" || typeName === "int"
+                || typeName === "Int64" || typeName === "long"
+                || typeName === "UInt16" || typeName === "ushort"
+                || typeName === "UInt32" || typeName === "uint"
+                || typeName === "UInt64" || typeName === "ulong"
+                || typeName === "Byte" || typeName === "byte"
+                || typeName === "SByte" || typeName === "sbyte"
+                || typeName === "Char" || typeName === "char"
+                || typeName === "Decimal" || typeName === "decimal"
+                || (type.symbol && type.symbol.name === "Nullable" && isNumericType(type.typeArguments[0]));
+        }
         function checkArithmeticOperandType(operand, type, diagnostic) {
+            // allow all C# numeric types
+            if (isNumericType(type))
+                return true;
+
+            var typeName = typeToString(type);
+
+            if (typeName === "Object" || typeName === "object") return true;
+            if (typeName === "String" || typeName === "string") return true;
+            //if (typeName === "Boolean" || typeName === "boolean" || typeName == "bool") return true;
+
             if (!isTypeAnyOrAllConstituentTypesHaveKind(type, 132 /* NumberLike */)) {
                 error(operand, diagnostic);
                 return false;
@@ -19980,6 +20047,8 @@ var ts;
                 case 58 /* PercentEqualsToken */:
                 case 34 /* MinusToken */:
                 case 55 /* MinusEqualsToken */:
+                case 33 /* PlusToken */:
+                case 54 /* PlusEqualsToken */:
                 case 40 /* LessThanLessThanToken */:
                 case 59 /* LessThanLessThanEqualsToken */:
                 case 41 /* GreaterThanGreaterThanToken */:
@@ -20014,13 +20083,36 @@ var ts;
                         // otherwise just check each operand separately and report errors as normal
                         var leftOk = checkArithmeticOperandType(node.left, leftType, ts.Diagnostics.The_left_hand_side_of_an_arithmetic_operation_must_be_of_type_any_number_or_an_enum_type);
                         var rightOk = checkArithmeticOperandType(node.right, rightType, ts.Diagnostics.The_right_hand_side_of_an_arithmetic_operation_must_be_of_type_any_number_or_an_enum_type);
-                        if (leftOk && rightOk) {
-                            checkAssignmentOperator(numberType);
+
+                        var resultType = numberType;
+                        if (operator === 33 /* PlusToken */ || operator === 54 /* PlusEqualsToken */) {
+                            var leftTypeName = typeToString(leftType);
+                            var rightTypeName = typeToString(rightType);
+
+                            // make it more like JavaScript
+                            if (leftTypeName === stringType || rightTypeName === stringType) {
+                                resultType = stringType; // TypeScript's string
+                            }
+
+                            // make it more like C#
+                            if (leftTypeName === "String" || leftTypeName === "string") {
+                                resultType = leftType; // System.String
+                            }
+
+                            if (rightTypeName === "String" || rightTypeName === "string") {
+                                resultType = rightType; // System.String
+                            }
                         }
+
+                        if (leftOk && rightOk) {
+                            checkAssignmentOperator(resultType);
+                        }
+
+                        return resultType;
                     }
                     return numberType;
-                case 33 /* PlusToken */:
-                case 54 /* PlusEqualsToken */:
+                case 330 /* PlusToken */:
+                case 540 /* PlusEqualsToken */:
                     // TypeScript 1.0 spec (April 2014): 4.15.2
                     // The binary + operator requires both operands to be of the Number primitive type or an enum type,
                     // or at least one of the operands to be of type Any or the String primitive type.
@@ -21704,6 +21796,12 @@ var ts;
                     }
                     var iteratorFunctionSignatures = iteratorFunction ? getSignaturesOfType(iteratorFunction, 0 /* Call */) : emptyArray;
                     if (iteratorFunctionSignatures.length === 0) {
+                        // allow default iteration by properties for JavaScript types and System.Object
+                        if (!type.symbol || !type.symbol.parent || (type.symbol.parent.name !== "System"
+                            || type.symbol.name === "Object")) {
+                            return stringType;
+                        }
+                        // other C# types must define an iterator
                         if (errorNode) {
                             error(errorNode, ts.Diagnostics.Type_must_have_a_Symbol_iterator_method_that_returns_an_iterator);
                         }
@@ -36455,7 +36553,7 @@ var ts;
                 TokenRange.AnyIncludingMultilineComments = TokenRange.FromTokens(TokenRange.Any.GetTokens().concat([3 /* MultiLineCommentTrivia */]));
                 TokenRange.Keywords = TokenRange.FromRange(66 /* FirstKeyword */, 127 /* LastKeyword */);
                 TokenRange.BinaryOperators = TokenRange.FromRange(24 /* FirstBinaryOperator */, 64 /* LastBinaryOperator */);
-                TokenRange.BinaryKeywordOperators = TokenRange.FromTokens([86 /* InKeyword */, 87 /* InstanceOfKeyword */, 127 /* OfKeyword */, 117 /* IsKeyword */]);
+                TokenRange.BinaryKeywordOperators = TokenRange.FromTokens([86 /* InKeyword */, 87 /* InstanceOfKeyword */, 127 /* OfKeyword *//*, 111*/ /* AsKeyword *//*, 117*/ /* IsKeyword */]);
                 TokenRange.UnaryPrefixOperators = TokenRange.FromTokens([38 /* PlusPlusToken */, 39 /* MinusMinusToken */, 47 /* TildeToken */, 46 /* ExclamationToken */]);
                 TokenRange.UnaryPrefixExpressions = TokenRange.FromTokens([7 /* NumericLiteral */, 65 /* Identifier */, 16 /* OpenParenToken */, 18 /* OpenBracketToken */, 14 /* OpenBraceToken */, 93 /* ThisKeyword */, 88 /* NewKeyword */]);
                 TokenRange.UnaryPreincrementExpressions = TokenRange.FromTokens([65 /* Identifier */, 16 /* OpenParenToken */, 93 /* ThisKeyword */, 88 /* NewKeyword */]);
@@ -39474,9 +39572,9 @@ var ts;
         function getValidSourceFile(fileName) {
             fileName = ts.normalizeSlashes(fileName);
             var sourceFile = program.getSourceFile(getCanonicalFileName(fileName));
-            if (!sourceFile) {
-                throw new Error("Could not find file: '" + fileName + "'.");
-            }
+            //if (!sourceFile) {
+            //    throw new Error("Could not find file: '" + fileName + "'.");
+            //}
             return sourceFile;
         }
         function getRuleProvider(options) {
@@ -42395,7 +42493,7 @@ var ts;
                     return 4 /* Namespace */ | 1 /* Value */;
             }
             return 1 /* Value */ | 2 /* Type */ | 4 /* Namespace */;
-            ts.Debug.fail("Unknown declaration type");
+            //ts.Debug.fail("Unknown declaration type");
         }
         function isTypeReference(node) {
             if (ts.isRightSideOfQualifiedNameOrPropertyAccess(node)) {
@@ -43521,7 +43619,8 @@ var ts;
             function processToken() {
                 var start = scanner.getTokenPos();
                 var end = scanner.getTextPos();
-                addResult(start, end, classFromKind(token));
+                var ttext = scanner.getTokenText();
+                addResult(start, end, classFromKind(token, ttext));
                 if (end >= text.length) {
                     if (token === 8 /* StringLiteral */) {
                         // Check to see if we finished up on a multiline string literal.
@@ -43647,11 +43746,28 @@ var ts;
         function isKeyword(token) {
             return token >= 66 /* FirstKeyword */ && token <= 127 /* LastKeyword */;
         }
-        function classFromKind(token) {
+        function classFromKind(token, text) {
             if (isKeyword(token)) {
                 return 3 /* keyword */;
-            }
-            else if (isBinaryExpressionOperatorToken(token) || isPrefixUnaryExpressionOperatorToken(token)) {
+            } else if (token === 65 && (
+                text === "bool" ||
+                text === "byte" ||
+                text === "sbyte" ||
+                text === "char" ||
+                text === "decimal" ||
+                text === "double" ||
+                text === "float" ||
+                text === "int" ||
+                text === "uint" ||
+                text === "long" ||
+                text === "ulong" ||
+                text === "object" ||
+                text === "short" ||
+                text === "ushort"
+                //|| text === "string"
+                )) {
+                return 3 /* C# keyword */;
+            } else if (isBinaryExpressionOperatorToken(token) || isPrefixUnaryExpressionOperatorToken(token)) {
                 return 5 /* operator */;
             }
             else if (token >= 14 /* FirstPunctuation */ && token <= 64 /* LastPunctuation */) {

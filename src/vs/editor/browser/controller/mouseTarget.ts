@@ -351,14 +351,14 @@ export class MouseTargetFactory {
 			adjustedPosy = editorContent.top + this.context.configuration.editor.observedOuterHeight - 1;
 		}
 
-		var hitx = e.posx - document.body.scrollLeft;
-		var r = this._actualDoHitTestWithCaretRangeFromPoint(hitx, adjustedPosy - document.body.scrollTop);
+		var hitx = e.posx - document.body.scrollLeft - document.documentElement.scrollLeft;
+		var r = this._actualDoHitTestWithCaretRangeFromPoint(hitx, adjustedPosy - document.body.scrollTop - document.documentElement.scrollTop);
 		if (r.position) {
 			return r;
 		}
 
 		// Also try to hit test without the adjustment (for the edge cases that we are near the top or bottom)
-		return this._actualDoHitTestWithCaretRangeFromPoint(hitx, e.posy - document.body.scrollTop);
+		return this._actualDoHitTestWithCaretRangeFromPoint(hitx, e.posy - document.body.scrollTop - document.documentElement.scrollTop);
 	}
 
 	private _actualDoHitTestWithCaretRangeFromPoint(hitx:number, hity:number): IHitTestResult {

@@ -9,9 +9,9 @@ import env = require('vs/base/common/flags');
 import {IWorker, IWorkerCallback, IWorkerFactory} from 'vs/base/common/worker/workerClient';
 
 function defaultGetWorkerUrl(workerId:string, label:string): string {
-	var url = require.toUrl('./' + workerId + '&' + encodeURIComponent(label));
-	if (url.lastIndexOf('.js&') !== -1) {
-		url = url.replace('.js&', '&');
+	var url = require.toUrl('./' + workerId + '?' + encodeURIComponent(label));
+	if (url.lastIndexOf('.js?') === -1) {
+		url = url.replace('?', '.js?');
 	}
 	return url;
 }

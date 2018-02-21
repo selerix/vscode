@@ -16112,8 +16112,8 @@ var ts;
                 if (target.symbol && (target.symbol.name === "Object" || target.symbol.name === "object")
                     && target.symbol.parent.name === "System")
                     return -1 /* True */;
-                if (target.symbol && target.symbol.name === "Nullable" && target.symbol.parent.name === "System"
-                    && (target.typeArguments[0] === source || isNumericType(target.typeArguments[0]) && isNumericType(source)))
+                if (target.symbol && target.symbol.name === "Nullable" && target.symbol.parent.name === "System" && target.typeArguments && target.typeArguments.Length > 0
+                    && (target.typeArguments[0] === source || (isNumericType(target.typeArguments[0]) && isNumericType(source))))
                     return -1 /* True */;
                 if (relation !== identityRelation) {
                     if (isTypeAny(target))
@@ -19736,7 +19736,7 @@ var ts;
                 || typeName === "SByte" || typeName === "sbyte"
                 || typeName === "Char" || typeName === "char"
                 || typeName === "Decimal" || typeName === "decimal"
-                || (type.symbol && type.symbol.name === "Nullable" && isNumericType(type.typeArguments[0]));
+                || (type.symbol && type.symbol.name === "Nullable" && type.typeArguments && type.typeArguments.Length > 0 && isNumericType(type.typeArguments[0]));
         }
         function checkArithmeticOperandType(operand, type, diagnostic) {
             // allow all C# numeric types

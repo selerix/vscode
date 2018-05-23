@@ -66,7 +66,7 @@ function createFormatCodeOptions(options:{ insertSpaces:boolean; tabSize:number;
 		InsertSpaceAfterKeywordsInControlFlowStatements: true,
 		InsertSpaceAfterFunctionKeywordForAnonymousFunctions: true,
 		InsertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis: false,
-		PlaceOpenBraceOnNewLineForFunctions: false,
-		PlaceOpenBraceOnNewLineForControlBlocks: false
+		PlaceOpenBraceOnNewLineForFunctions: true,
+		PlaceOpenBraceOnNewLineForControlBlocks: true
 	};
 }
